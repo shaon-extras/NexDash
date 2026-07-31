@@ -1,4 +1,3 @@
-<!-- Full index.html with footer for run log -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -6,8 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NexDash</title>
     <style>
-        /* ... (your existing styles) ... */
-        /* Additional footer style */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #121212;
+            color: #eee;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .dashboard-header {
+            text-align: left;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 10px;
+        }
+        .dashboard-header h1 {
+            color: #4db8ff;
+            font-weight: 600;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        .dashboard-header p {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            transition: transform 0.1s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+        }
+        .meter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .meter-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .meter-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: #4db8ff;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .copy-btn:hover {
+            color: #fff;
+        }
+        .copy-btn:active {
+            transform: scale(0.9);
+        }
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+        .balance-positive {
+            color: #2ecc71;
+        }
+        .balance-negative {
+            color: #e74c3c;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #ccc;
+            background: #2a2a2a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0 12px 0;
+        }
+        .meta-row span {
+            display: inline-block;
+        }
+        .usage-badge {
+            display: inline-block;
+            background: #ffebee;
+            color: #c62828;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .chart-container {
+            margin-top: 12px;
+            height: 160px;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .no-data {
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        /* Forecast row: two columns */
+        .forecast-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            background: #1a1a2e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border-left: 3px solid #4db8ff;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .forecast-left, .forecast-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .forecast-label {
+            color: #aaa;
+        }
+        .forecast-value {
+            color: #4db8ff;
+            font-weight: 600;
+        }
+        .total-usage-value {
+            color: #f1c40f;
+            font-weight: 600;
+        }
+
+        /* --- Run log footer styles --- */
         .run-log-footer {
             max-width: 1400px;
             margin: 30px auto 0;
@@ -52,6 +217,27 @@
             margin-bottom: 8px;
         }
         @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .meter-header {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .meter-number {
+                font-size: 16px;
+            }
+            .meter-title {
+                font-size: 18px;
+            }
+            .forecast-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+            }
+            .forecast-left, .forecast-right {
+                justify-content: space-between;
+            }
             .run-log-grid {
                 grid-template-columns: 1fr 1fr;
             }
@@ -77,7 +263,7 @@
         </div>
     </div>
 
-    <!-- Chart.js + DataLabels -->
+    <!-- Chart.js v2.9.4 + DataLabels Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
@@ -90,7 +276,7 @@
         const CACHE_BUST = '?v=' + new Date().getTime();
         let allCharts = [];
 
-        // ---------- Helper functions (same as before) ----------
+        // ---------- Helper: shift date by -1 day and return Date object ----------
         function shiftDateMinusOne(dateStr) {
             if (!dateStr) return null;
             const parts = dateStr.split('-');
@@ -100,6 +286,7 @@
             return d;
         }
 
+        // ---------- Helper: format date (1 day backward) for display ----------
         function formatDateLabel(dateStr) {
             const d = shiftDateMinusOne(dateStr);
             if (!d) return '';
@@ -109,6 +296,7 @@
             return months[month] + ' ' + String(day).padStart(2, '0');
         }
 
+        // ---------- Helper: format date as YYYY-MM-DD ----------
         function formatDateYYYYMMDD(dateObj) {
             const y = dateObj.getFullYear();
             const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -116,6 +304,7 @@
             return y + '-' + m + '-' + d;
         }
 
+        // ---------- Helper: format time to 12-hour ----------
         function formatTime12(datetimeStr) {
             if (!datetimeStr) return 'N/A';
             const parts = datetimeStr.split(' ');
@@ -129,6 +318,29 @@
             return hour + ':' + minute + ' ' + ampm;
         }
 
+        // ---------- Helper: calculate average usage from history ----------
+        function calculateAverageUsage(history) {
+            if (!history || history.length === 0) return 0;
+            const count = Math.min(history.length, 7);
+            const last7 = history.slice(-count);
+            const total = last7.reduce((sum, entry) => sum + (entry.usage || 0), 0);
+            return total / count;
+        }
+
+        // ---------- Helper: forecast ----------
+        function getForecast(balance, avgDailyUsage) {
+            if (avgDailyUsage <= 0) {
+                return { daysRemaining: Infinity, daysCeil: 0, endDate: null };
+            }
+            const days = balance / avgDailyUsage;
+            const daysCeil = Math.ceil(days);
+            const today = new Date();
+            const endDate = new Date(today);
+            endDate.setDate(today.getDate() + daysCeil);
+            return { daysRemaining: days, daysCeil: daysCeil, endDate: endDate };
+        }
+
+        // ---------- Copy meter number ----------
         function copyMeterNumber(meter) {
             navigator.clipboard.writeText(meter).then(() => {
                 const btn = document.getElementById(`copy-btn-${meter}`);
@@ -137,13 +349,15 @@
                     btn.innerHTML = '✓';
                     setTimeout(() => { btn.innerHTML = original; }, 1000);
                 }
-            }).catch(err => { console.error('Copy failed', err); });
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
         }
 
-        // ---------- Main load ----------
+        // ---------- Main dashboard load ----------
         async function loadDashboard() {
             try {
-                // Fetch all data
+                // Fetch history, config, and run log
                 const [historyRes, configRes, runLogRes] = await Promise.all([
                     fetch(HISTORY_URL + CACHE_BUST),
                     fetch(CONFIG_URL + CACHE_BUST).catch(() => ({ ok: false })),
@@ -152,6 +366,7 @@
 
                 if (!historyRes.ok) throw new Error("History file not found");
                 const fullData = await historyRes.json();
+
                 let meterNames = {};
                 if (configRes.ok) {
                     meterNames = await configRes.json();
@@ -177,7 +392,7 @@
 
                     let footerHtml = `<div class="run-log-time">🕒 রান সময়: ${runTime}</div><div class="run-log-grid">`;
                     const customOrder = ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"];
-                    const meterKeys = Object.keys(metersStatus).sort((a,b) => customOrder.indexOf(a) - customOrder.indexOf(b));
+                    const meterKeys = Object.keys(metersStatus).sort((a, b) => customOrder.indexOf(a) - customOrder.indexOf(b));
 
                     if (meterKeys.length === 0) {
                         footerHtml += '<span style="color:#888;">কোনো রানের তথ্য নেই</span>';
@@ -219,27 +434,43 @@
                 meterNumbers.sort((a, b) => customOrder.indexOf(a) - customOrder.indexOf(b));
 
                 meterNumbers.forEach((meter) => {
-                    const entry = meterData[meter];
-                    const history = entry.history || [];
-                    const monthlyTotal = entry.monthly_total || 0.0;
-                    const displayName = meterNames[meter] || meter;
+                    const meterEntry = meterData[meter];
+                    // In new format, meterEntry is { history, monthly_total, last_balance }
+                    // but we also support fallback if it's still an array (old format)
+                    let history = [];
+                    let monthlyTotal = 0;
+                    if (Array.isArray(meterEntry)) {
+                        // Old format – fallback
+                        history = meterEntry;
+                        monthlyTotal = history.reduce((sum, e) => sum + (e.usage || 0), 0);
+                    } else if (meterEntry && typeof meterEntry === 'object') {
+                        history = meterEntry.history || [];
+                        monthlyTotal = meterEntry.monthly_total || 0;
+                    }
 
+                    const displayName = meterNames[meter] || meter;
                     const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                    const avgUsage = calculateAverageUsage(history);
                     const latestBalance = lastEntry ? lastEntry.balance : 0;
                     const latestDate = lastEntry ? formatDateLabel(lastEntry.balance_date) : '--';
 
-                    // Compute average usage from last 7 (already only 7)
-                    let avgUsage = 0;
-                    if (history.length > 0) {
-                        const total = history.reduce((s, e) => s + (e.usage || 0), 0);
-                        avgUsage = total / history.length;
+                    // Forecast
+                    const forecast = getForecast(latestBalance, avgUsage);
+                    let forecastText = '';
+                    if (avgUsage === 0) {
+                        forecastText = 'গড় খরচ ০, পূর্বাভাস সম্ভব নয়';
+                    } else if (forecast.daysRemaining <= 0) {
+                        forecastText = '⚠️ ব্যালেন্স শেষ!';
+                    } else {
+                        const endDateStr = formatDateLabel(formatDateYYYYMMDD(forecast.endDate));
+                        forecastText = `অবশিষ্ট: ${forecast.daysCeil} দিন (≈ ${endDateStr})`;
                     }
 
-                    const balanceClass = latestBalance < 0 ? 'balance-negative' : 'balance-positive';
+                    const last7 = history.slice(-7);
+                    const labels = last7.map(d => formatDateLabel(d.balance_date || ''));
+                    const usages = last7.map(d => d.usage || 0);
 
-                    // Chart data (last 7 entries)
-                    const labels = history.map(d => formatDateLabel(d.balance_date || ''));
-                    const usages = history.map(d => d.usage || 0);
+                    const balanceClass = latestBalance < 0 ? 'balance-negative' : 'balance-positive';
 
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -268,7 +499,7 @@
                             </div>
                             <div class="forecast-right">
                                 <span class="forecast-label">🔮 পূর্বাভাস</span>
-                                <span class="forecast-value">${avgUsage > 0 ? Math.ceil(latestBalance / avgUsage) + ' দিন' : 'N/A'}</span>
+                                <span class="forecast-value">${forecastText}</span>
                             </div>
                         </div>
                     `;
@@ -277,6 +508,7 @@
 
                     // Draw chart
                     const ctx = document.getElementById(`chart-${meter}`).getContext('2d');
+
                     const chart = new Chart(ctx, {
                         type: 'bar',
                         data: {
@@ -302,11 +534,21 @@
                             },
                             scales: {
                                 yAxes: [{
-                                    ticks: { beginAtZero: true, maxTicksLimit: 4, fontColor: '#ccc', fontSize: 9 },
+                                    ticks: {
+                                        beginAtZero: true,
+                                        maxTicksLimit: 4,
+                                        fontColor: '#ccc',
+                                        fontSize: 9
+                                    },
                                     gridLines: { color: '#444', display: true }
                                 }],
                                 xAxes: [{
-                                    ticks: { fontColor: '#eee', fontSize: 10, maxRotation: 30, minRotation: 0 },
+                                    ticks: {
+                                        fontColor: '#eee',
+                                        fontSize: 10,
+                                        maxRotation: 30,
+                                        minRotation: 0
+                                    },
                                     gridLines: { display: false }
                                 }]
                             },
@@ -316,12 +558,15 @@
                                     align: 'end',
                                     color: '#eee',
                                     font: { size: 10, weight: 'bold' },
-                                    formatter: (value) => '৳' + value.toFixed(1),
+                                    formatter: function(value) {
+                                        return '৳' + value.toFixed(1);
+                                    },
                                     offset: 2
                                 }
                             }
                         }
                     });
+
                     allCharts.push(chart);
                 });
 
