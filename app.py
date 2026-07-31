@@ -147,7 +147,7 @@ def main():
         monthly_total = meter.get("monthly_total", 0.0)
 
         # ---- Reset monthly_total on the 1st and store previous month (ONCE) ----
-        if today_bd.day == 1:
+        if today_bd.day == 2:
             # Compute previous month label
             first_day_current = today_bd.replace(day=1)
             prev_month_date = first_day_current - timedelta(days=1)
