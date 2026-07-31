@@ -172,7 +172,7 @@
             font-weight: 600;
         }
 
-        /* --- New monthly history row --- */
+        /* --- Monthly history row (FIXED for mobile) --- */
         .monthly-history-row {
             display: flex;
             justify-content: space-between;
@@ -184,19 +184,22 @@
             margin-top: 6px;
             border-left: 3px solid #f1c40f;
             flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 4px;
+            flex-wrap: nowrap;
+            gap: 6px;
         }
         .monthly-history-row .monthly-label {
             color: #aaa;
+            white-space: nowrap;
         }
         .monthly-history-row .monthly-usage {
             color: #f1c40f;
             font-weight: 600;
+            white-space: nowrap;
         }
         .monthly-history-row .monthly-month {
             color: #888;
             font-size: 11px;
+            white-space: nowrap;
         }
 
         /* --- Run log footer styles --- */
@@ -266,9 +269,11 @@
                 justify-content: space-between;
             }
             .monthly-history-row {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 2px;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+                gap: 4px;
+                font-size: 12px;
             }
             .run-log-grid {
                 grid-template-columns: 1fr 1fr;
