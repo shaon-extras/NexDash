@@ -172,6 +172,33 @@
             font-weight: 600;
         }
 
+        /* --- New monthly history row --- */
+        .monthly-history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            background: #1a1a2e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-top: 6px;
+            border-left: 3px solid #f1c40f;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .monthly-history-row .monthly-label {
+            color: #aaa;
+        }
+        .monthly-history-row .monthly-usage {
+            color: #f1c40f;
+            font-weight: 600;
+        }
+        .monthly-history-row .monthly-month {
+            color: #888;
+            font-size: 11px;
+        }
+
         /* --- Run log footer styles --- */
         .run-log-footer {
             max-width: 1400px;
@@ -237,6 +264,11 @@
             }
             .forecast-left, .forecast-right {
                 justify-content: space-between;
+            }
+            .monthly-history-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 2px;
             }
             .run-log-grid {
                 grid-template-columns: 1fr 1fr;
@@ -329,6 +361,17 @@
             const timeStr = hour + ':' + minute + ' ' + ampm;
 
             return dateStr + ' ' + timeStr + ' (BD)';
+        }
+
+        // ---------- Helper: format a month label (YYYY-MM) to display (e.g., "Jul 2026") ----------
+        function formatMonthLabel(monthStr) {
+            if (!monthStr) return '';
+            const parts = monthStr.split('-');
+            if (parts.length !== 2) return monthStr;
+            const year = parts[0];
+            const month = parseInt(parts[1], 10);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months[month - 1] + ' ' + year;
         }
 
         // ---------- Helper: calculate average usage from history ----------
@@ -450,13 +493,16 @@
                     const meterEntry = meterData[meter];
                     let history = [];
                     let monthlyTotal = 0;
+                    let monthlyTotals = [];
                     if (Array.isArray(meterEntry)) {
                         // Old format – fallback
                         history = meterEntry;
                         monthlyTotal = history.reduce((sum, e) => sum + (e.usage || 0), 0);
+                        monthlyTotals = [];
                     } else if (meterEntry && typeof meterEntry === 'object') {
                         history = meterEntry.history || [];
                         monthlyTotal = meterEntry.monthly_total || 0;
+                        monthlyTotals = meterEntry.monthly_totals || [];
                     }
 
                     const displayName = meterNames[meter] || meter;
@@ -464,6 +510,15 @@
                     const avgUsage = calculateAverageUsage(history);
                     const latestBalance = lastEntry ? lastEntry.balance : 0;
                     const latestDate = lastEntry ? formatDateLabel(lastEntry.balance_date) : '--';
+
+                    // --- Previous month usage ---
+                    let prevMonthUsage = 0;
+                    let prevMonthLabel = '';
+                    if (monthlyTotals.length > 0) {
+                        const lastMonth = monthlyTotals[monthlyTotals.length - 1];
+                        prevMonthUsage = lastMonth.usage;
+                        prevMonthLabel = formatMonthLabel(lastMonth.month);
+                    }
 
                     // Forecast
                     const forecast = getForecast(latestBalance, avgUsage);
@@ -486,6 +541,24 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.id = `card-${meter}`;
+
+                    let monthlyHistoryHtml = '';
+                    if (prevMonthUsage > 0) {
+                        monthlyHistoryHtml = `
+                            <div class="monthly-history-row">
+                                <span class="monthly-label">📆 গত মাসের খরচ:</span>
+                                <span class="monthly-usage">৳ ${prevMonthUsage.toFixed(2)}</span>
+                                <span class="monthly-month">(${prevMonthLabel})</span>
+                            </div>
+                        `;
+                    } else {
+                        monthlyHistoryHtml = `
+                            <div class="monthly-history-row">
+                                <span class="monthly-label">📆 গত মাসের খরচ:</span>
+                                <span class="monthly-usage" style="color:#888;">N/A</span>
+                            </div>
+                        `;
+                    }
 
                     card.innerHTML = `
                         <div class="meter-header">
@@ -513,6 +586,7 @@
                                 <span class="forecast-value">${forecastText}</span>
                             </div>
                         </div>
+                        ${monthlyHistoryHtml}
                     `;
 
                     container.appendChild(card);
