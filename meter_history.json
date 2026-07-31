@@ -37,12 +37,6 @@
                     "balance": 1094.08,
                     "usage": 84.32,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 1094.08,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 1523.85,
@@ -85,12 +79,6 @@
                     "balance": 218.13,
                     "usage": 119.56,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 218.13,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 2327.2599999999998,
@@ -133,12 +121,6 @@
                     "balance": 348.82,
                     "usage": 64.45,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 348.82,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 1660.82,
@@ -181,12 +163,6 @@
                     "balance": 234.74,
                     "usage": 39.59,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 234.74,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 1035.11,
@@ -229,12 +205,6 @@
                     "balance": 5.36,
                     "usage": 8.42,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 5.36,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 405.74,
@@ -277,12 +247,6 @@
                     "balance": 119.76,
                     "usage": 25.79,
                     "recorded_at": "2026-07-31 23:27:10"
-                },
-                {
-                    "balance_date": "2026-07-31",
-                    "balance": 119.76,
-                    "usage": 0.0,
-                    "recorded_at": "2026-07-31 22:55:45"
                 }
             ],
             "monthly_total": 533.6,
