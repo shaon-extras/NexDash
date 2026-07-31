@@ -18,11 +18,9 @@ session = requests.Session()
 
 # ---- PROXY SETUP ----
 proxy_url = None
-# 1. Try to read from proxy.txt
 if os.path.exists(PROXY_FILE):
     with open(PROXY_FILE, "r") as f:
         proxy_url = f.read().strip()
-# 2. Fallback to environment variable
 if not proxy_url:
     proxy_url = os.getenv("PROXY_URL")
 
@@ -49,13 +47,11 @@ def fetch_nesco_data(cust_no, retries=3):
     headers = {"User-Agent": "Mozilla/5.0"}
     for attempt in range(retries):
         try:
-            # GET the page to obtain CSRF token
             r1 = session.get(PANEL_URL, headers=headers, timeout=45)
             soup_page = BeautifulSoup(r1.text, "html.parser")
             token_tag = soup_page.find("input", {"name": "_token"})
             if not token_tag:
                 return None
-            # POST to get balance
             data = {
                 "_token": token_tag["value"],
                 "cust_no": cust_no.strip(),
@@ -75,7 +71,7 @@ def fetch_nesco_data(cust_no, retries=3):
         except Exception as e:
             print(f"   ⚠️ Attempt {attempt+1}/{retries} failed: {e}")
             if attempt < retries - 1:
-                wait = (attempt + 1) * 2  # 2, 4, 6 seconds
+                wait = (attempt + 1) * 2
                 print(f"   🔄 Retrying in {wait}s...")
                 time.sleep(wait)
             else:
@@ -94,59 +90,80 @@ def main():
     meter_data = full_db.get("meter_data", {})
     last_run = full_db.get("last_run", {})
 
+    # ---- MIGRATE OLD FORMAT TO NEW ----
+    # If meter_data[meter] is a list, convert to dict with history, monthly_total, last_balance
+    for cust_no, value in list(meter_data.items()):
+        if isinstance(value, list):
+            # Old format: just a list of entries
+            history = value
+            # Compute monthly_total from history (sum of usage for current month)
+            # We'll keep it simple: compute sum of all usage (since we assume only current month)
+            # But we can also recalc from the entries.
+            monthly_total = sum(entry.get("usage", 0) for entry in history)
+            # Determine last_balance from last entry if exists
+            last_balance = history[-1]["balance"] if history else 0.0
+            meter_data[cust_no] = {
+                "history": history,
+                "monthly_total": monthly_total,
+                "last_balance": last_balance
+            }
+            print(f"🔄 Migrated meter {cust_no} to new format")
+        elif isinstance(value, dict):
+            # Already new format – ensure it has all keys
+            if "history" not in value:
+                value["history"] = []
+            if "monthly_total" not in value:
+                value["monthly_total"] = 0.0
+            if "last_balance" not in value:
+                value["last_balance"] = 0.0
+        else:
+            # Unexpected – reset
+            meter_data[cust_no] = {"history": [], "monthly_total": 0.0, "last_balance": 0.0}
+
     now_bd = datetime.now(BD_TZ)
     now_bd_str = now_bd.strftime("%Y-%m-%d %H:%M:%S")
     today_bd = now_bd.date()
 
-    # Prepare run log
-    run_log = {
-        "timestamp": now_bd_str,
-        "meters": {}
-    }
+    run_log = {"timestamp": now_bd_str, "meters": {}}
 
     meters = get_meter_numbers()
     print(f"⏰ Runner Time (BD): {now_bd_str}")
 
-    # ---- Warm‑up connection (reduce first‑request timeout) ----
+    # ---- Warm‑up ----
     if proxy_url:
         try:
             session.head(PANEL_URL, timeout=30)
             print("🌐 Proxy connection warmed up.")
         except:
-            pass  # ignore warm‑up errors
+            pass
 
     # ---- Process each meter ----
     for cust_no in meters:
         print(f"\n🔍 Checking meter: {cust_no}")
-        current_data = fetch_nesco_data(cust_no)
 
-        # Initialize meter entry if not exists
+        # Ensure meter exists in meter_data
         if cust_no not in meter_data:
-            meter_data[cust_no] = {
-                "history": [],
-                "monthly_total": 0.0,
-                "last_balance": 0.0
-            }
+            meter_data[cust_no] = {"history": [], "monthly_total": 0.0, "last_balance": 0.0}
 
         meter = meter_data[cust_no]
         history = meter["history"]
         monthly_total = meter.get("monthly_total", 0.0)
 
-        # If today is the 1st of the month, reset monthly_total
+        # Reset monthly_total on the 1st
         if today_bd.day == 1:
             monthly_total = 0.0
             print(f"   📅 New month – reset monthly_total to 0")
 
+        current_data = fetch_nesco_data(cust_no)
+
         if not current_data:
-            # Failed to fetch – log the failure
             last_run[cust_no] = now_bd_str
             run_log["meters"][cust_no] = {
                 "success": False,
                 "error": "Scraping failed (timeout or no data)",
                 "balance_fetched": None
             }
-            # Still update the meter entry but mark failure
-            meter["monthly_total"] = monthly_total  # keep as is
+            meter["monthly_total"] = monthly_total
             continue
 
         # ---- Success ----
@@ -154,17 +171,14 @@ def main():
         web_date = current_data["date"]
         print(f"   📅 Scraped Date: {web_date}, Balance: {web_balance}")
 
-        # Calculate usage based on previous balance
         prev_balance = meter.get("last_balance", web_balance)
         if web_balance <= prev_balance:
             usage = round(prev_balance - web_balance, 2)
         else:
-            usage = 0.0  # recharge or data glitch
+            usage = 0.0
 
-        # Add to monthly total
         monthly_total += usage
 
-        # Append new entry (always add a new entry for today)
         new_entry = {
             "balance_date": web_date,
             "balance": web_balance,
@@ -173,19 +187,16 @@ def main():
         }
         history.append(new_entry)
 
-        # Trim history to last 7 entries
+        # Trim to last 7 entries
         if len(history) > 7:
             history = history[-7:]
 
-        # Update meter data
         meter["history"] = history
         meter["monthly_total"] = monthly_total
         meter["last_balance"] = web_balance
 
-        # Update last_run
         last_run[cust_no] = now_bd_str
 
-        # Log success
         run_log["meters"][cust_no] = {
             "success": True,
             "error": None,
@@ -195,13 +206,12 @@ def main():
 
         print(f"   ✅ Usage: {usage} | Monthly total: {monthly_total}")
 
-    # ---- Save database ----
+    # ---- Save ----
     full_db["meter_data"] = meter_data
     full_db["last_run"] = last_run
     with open(DB_FILE, "w") as f:
         json.dump(full_db, f, indent=4)
 
-    # ---- Write run log ----
     with open(RUN_LOG_FILE, "w") as f:
         json.dump(run_log, f, indent=4)
 
