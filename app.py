@@ -4,7 +4,7 @@ import json
 import time
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 PANEL_URL = "https://customer.nesco.gov.bd/pre/panel"
@@ -99,7 +99,8 @@ def main():
             meter_data[cust_no] = {
                 "history": history,
                 "monthly_total": monthly_total,
-                "last_balance": last_balance
+                "last_balance": last_balance,
+                "monthly_totals": []   # <-- new field
             }
             print(f"🔄 Migrated meter {cust_no} to new format")
         elif isinstance(value, dict):
@@ -109,6 +110,8 @@ def main():
                 value["monthly_total"] = 0.0
             if "last_balance" not in value:
                 value["last_balance"] = 0.0
+            if "monthly_totals" not in value:
+                value["monthly_totals"] = []   # <-- ensure this exists
 
     now_bd = datetime.now(BD_TZ)
     now_bd_str = now_bd.strftime("%Y-%m-%d %H:%M:%S")
@@ -132,14 +135,32 @@ def main():
         print(f"\n🔍 Checking meter: {cust_no}")
 
         if cust_no not in meter_data:
-            meter_data[cust_no] = {"history": [], "monthly_total": 0.0, "last_balance": 0.0}
+            meter_data[cust_no] = {
+                "history": [],
+                "monthly_total": 0.0,
+                "last_balance": 0.0,
+                "monthly_totals": []
+            }
 
         meter = meter_data[cust_no]
         history = meter["history"]
         monthly_total = meter.get("monthly_total", 0.0)
 
-        # Reset monthly_total on the 1st
+        # ---- Reset monthly_total on the 1st and store previous month ----
         if today_bd.day == 1:
+            # Store previous month's total before reset
+            if monthly_total > 0:
+                # Compute previous month label (e.g., "2026-07")
+                first_day_current = today_bd.replace(day=1)
+                prev_month_date = first_day_current - timedelta(days=1)
+                prev_month_label = prev_month_date.strftime("%Y-%m")
+                if "monthly_totals" not in meter:
+                    meter["monthly_totals"] = []
+                meter["monthly_totals"].append({
+                    "month": prev_month_label,
+                    "usage": monthly_total
+                })
+                print(f"   📊 Stored previous month ({prev_month_label}) usage: {monthly_total}")
             monthly_total = 0.0
             print(f"   📅 New month – reset monthly_total to 0")
 
