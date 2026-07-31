@@ -304,18 +304,31 @@
             return y + '-' + m + '-' + d;
         }
 
-        // ---------- Helper: format time to 12-hour ----------
-        function formatTime12(datetimeStr) {
+        // ---------- NEW: Format date + time together ----------
+        function formatDateTime(datetimeStr) {
             if (!datetimeStr) return 'N/A';
             const parts = datetimeStr.split(' ');
             if (parts.length < 2) return datetimeStr;
+
+            // Parse date: YYYY-MM-DD
+            const dateParts = parts[0].split('-');
+            if (dateParts.length !== 3) return datetimeStr;
+            const year = dateParts[0];
+            const month = parseInt(dateParts[1], 10);
+            const day = parseInt(dateParts[2], 10);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dateStr = months[month - 1] + ' ' + day + ', ' + year;
+
+            // Parse time: HH:MM:SS
             const timeParts = parts[1].split(':');
             if (timeParts.length < 2) return datetimeStr;
             let hour = parseInt(timeParts[0], 10);
             const minute = timeParts[1];
             const ampm = hour >= 12 ? 'PM' : 'AM';
             hour = hour % 12 || 12;
-            return hour + ':' + minute + ' ' + ampm;
+            const timeStr = hour + ':' + minute + ' ' + ampm;
+
+            return dateStr + ' ' + timeStr + ' (BD)';
         }
 
         // ---------- Helper: calculate average usage from history ----------
@@ -375,11 +388,11 @@
                 const meterData = fullData.meter_data || {};
                 const lastRun = fullData.last_run || {};
 
-                // Update global header timestamp
+                // Update global header timestamp using new format
                 const allRuns = Object.values(lastRun);
                 if (allRuns.length > 0) {
                     allRuns.sort((a, b) => new Date(b) - new Date(a));
-                    document.getElementById('globalUpdateTime').innerText = formatTime12(allRuns[0]) + ' (BD)';
+                    document.getElementById('globalUpdateTime').innerText = formatDateTime(allRuns[0]);
                 } else {
                     document.getElementById('globalUpdateTime').innerText = 'No runs yet';
                 }
@@ -387,7 +400,7 @@
                 // ---------- Run log footer ----------
                 if (runLogRes.ok) {
                     const runLog = await runLogRes.json();
-                    const runTime = runLog.timestamp ? formatTime12(runLog.timestamp) : 'Unknown';
+                    const runTime = runLog.timestamp ? formatDateTime(runLog.timestamp) : 'Unknown';
                     const metersStatus = runLog.meters || {};
 
                     let footerHtml = `<div class="run-log-time">🕒 রান সময়: ${runTime}</div><div class="run-log-grid">`;
@@ -435,8 +448,6 @@
 
                 meterNumbers.forEach((meter) => {
                     const meterEntry = meterData[meter];
-                    // In new format, meterEntry is { history, monthly_total, last_balance }
-                    // but we also support fallback if it's still an array (old format)
                     let history = [];
                     let monthlyTotal = 0;
                     if (Array.isArray(meterEntry)) {
