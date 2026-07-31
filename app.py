@@ -91,16 +91,10 @@ def main():
     last_run = full_db.get("last_run", {})
 
     # ---- MIGRATE OLD FORMAT TO NEW ----
-    # If meter_data[meter] is a list, convert to dict with history, monthly_total, last_balance
     for cust_no, value in list(meter_data.items()):
         if isinstance(value, list):
-            # Old format: just a list of entries
             history = value
-            # Compute monthly_total from history (sum of usage for current month)
-            # We'll keep it simple: compute sum of all usage (since we assume only current month)
-            # But we can also recalc from the entries.
             monthly_total = sum(entry.get("usage", 0) for entry in history)
-            # Determine last_balance from last entry if exists
             last_balance = history[-1]["balance"] if history else 0.0
             meter_data[cust_no] = {
                 "history": history,
@@ -109,16 +103,12 @@ def main():
             }
             print(f"🔄 Migrated meter {cust_no} to new format")
         elif isinstance(value, dict):
-            # Already new format – ensure it has all keys
             if "history" not in value:
                 value["history"] = []
             if "monthly_total" not in value:
                 value["monthly_total"] = 0.0
             if "last_balance" not in value:
                 value["last_balance"] = 0.0
-        else:
-            # Unexpected – reset
-            meter_data[cust_no] = {"history": [], "monthly_total": 0.0, "last_balance": 0.0}
 
     now_bd = datetime.now(BD_TZ)
     now_bd_str = now_bd.strftime("%Y-%m-%d %H:%M:%S")
@@ -141,7 +131,6 @@ def main():
     for cust_no in meters:
         print(f"\n🔍 Checking meter: {cust_no}")
 
-        # Ensure meter exists in meter_data
         if cust_no not in meter_data:
             meter_data[cust_no] = {"history": [], "monthly_total": 0.0, "last_balance": 0.0}
 
@@ -171,13 +160,30 @@ def main():
         web_date = current_data["date"]
         print(f"   📅 Scraped Date: {web_date}, Balance: {web_balance}")
 
-        prev_balance = meter.get("last_balance", web_balance)
-        if web_balance <= prev_balance:
-            usage = round(prev_balance - web_balance, 2)
+        # ---- Calculate usage (based on previous entry, not today) ----
+        prev_entry = None
+        for entry in reversed(history):
+            if entry["balance_date"] != web_date:
+                prev_entry = entry
+                break
+
+        if prev_entry:
+            prev_balance = prev_entry["balance"]
+            if web_balance <= prev_balance:
+                usage = round(prev_balance - web_balance, 2)
+            else:
+                usage = 0.0
         else:
             usage = 0.0
 
         monthly_total += usage
+
+        # ---- Check if today's entry already exists ----
+        existing_idx = None
+        for i, entry in enumerate(history):
+            if entry["balance_date"] == web_date:
+                existing_idx = i
+                break
 
         new_entry = {
             "balance_date": web_date,
@@ -185,7 +191,15 @@ def main():
             "usage": usage,
             "recorded_at": now_bd_str
         }
-        history.append(new_entry)
+
+        if existing_idx is not None:
+            # Update existing entry
+            history[existing_idx] = new_entry
+            print(f"   🔄 Updated existing entry for {web_date}")
+        else:
+            # Append new entry
+            history.append(new_entry)
+            print(f"   ➕ Added new entry for {web_date}")
 
         # Trim to last 7 entries
         if len(history) > 7:
