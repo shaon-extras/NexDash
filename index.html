@@ -1,0 +1,341 @@
+<!-- Full index.html with footer for run log -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexDash</title>
+    <style>
+        /* ... (your existing styles) ... */
+        /* Additional footer style */
+        .run-log-footer {
+            max-width: 1400px;
+            margin: 30px auto 0;
+            padding: 16px 20px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #333;
+            font-size: 14px;
+        }
+        .run-log-footer h3 {
+            color: #4db8ff;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+        .run-log-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px 20px;
+        }
+        .run-log-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .run-log-item .status-icon {
+            font-size: 16px;
+        }
+        .run-log-item .meter-name {
+            color: #ccc;
+            font-weight: 500;
+        }
+        .run-log-item .error-msg {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+        .run-log-time {
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 600px) {
+            .run-log-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <h1>⚡NexDash</h1>
+        <p>সর্বশেষ আপডেট: <span id="globalUpdateTime">Loading...</span></p>
+    </div>
+
+    <div class="card-grid" id="cardContainer">
+        <!-- Cards injected here -->
+    </div>
+
+    <!-- Run Log Footer -->
+    <div class="run-log-footer" id="runLogFooter">
+        <h3>📋 সর্বশেষ রানের অবস্থা</h3>
+        <div id="runLogContent">
+            <span class="run-log-time">Loading run log...</span>
+        </div>
+    </div>
+
+    <!-- Chart.js + DataLabels -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <script>
+        Chart.plugins.register(ChartDataLabels);
+
+        const HISTORY_URL = "meter_history.json";
+        const CONFIG_URL = "meter_config.json";
+        const RUN_LOG_URL = "run_log.json";
+        const CACHE_BUST = '?v=' + new Date().getTime();
+        let allCharts = [];
+
+        // ---------- Helper functions (same as before) ----------
+        function shiftDateMinusOne(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return null;
+            const d = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+            d.setUTCDate(d.getUTCDate() - 1);
+            return d;
+        }
+
+        function formatDateLabel(dateStr) {
+            const d = shiftDateMinusOne(dateStr);
+            if (!d) return '';
+            const month = d.getUTCMonth();
+            const day = d.getUTCDate();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months[month] + ' ' + String(day).padStart(2, '0');
+        }
+
+        function formatDateYYYYMMDD(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        function formatTime12(datetimeStr) {
+            if (!datetimeStr) return 'N/A';
+            const parts = datetimeStr.split(' ');
+            if (parts.length < 2) return datetimeStr;
+            const timeParts = parts[1].split(':');
+            if (timeParts.length < 2) return datetimeStr;
+            let hour = parseInt(timeParts[0], 10);
+            const minute = timeParts[1];
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            return hour + ':' + minute + ' ' + ampm;
+        }
+
+        function copyMeterNumber(meter) {
+            navigator.clipboard.writeText(meter).then(() => {
+                const btn = document.getElementById(`copy-btn-${meter}`);
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '✓';
+                    setTimeout(() => { btn.innerHTML = original; }, 1000);
+                }
+            }).catch(err => { console.error('Copy failed', err); });
+        }
+
+        // ---------- Main load ----------
+        async function loadDashboard() {
+            try {
+                // Fetch all data
+                const [historyRes, configRes, runLogRes] = await Promise.all([
+                    fetch(HISTORY_URL + CACHE_BUST),
+                    fetch(CONFIG_URL + CACHE_BUST).catch(() => ({ ok: false })),
+                    fetch(RUN_LOG_URL + CACHE_BUST).catch(() => ({ ok: false }))
+                ]);
+
+                if (!historyRes.ok) throw new Error("History file not found");
+                const fullData = await historyRes.json();
+                let meterNames = {};
+                if (configRes.ok) {
+                    meterNames = await configRes.json();
+                }
+
+                const meterData = fullData.meter_data || {};
+                const lastRun = fullData.last_run || {};
+
+                // Update global header timestamp
+                const allRuns = Object.values(lastRun);
+                if (allRuns.length > 0) {
+                    allRuns.sort((a, b) => new Date(b) - new Date(a));
+                    document.getElementById('globalUpdateTime').innerText = formatTime12(allRuns[0]) + ' (BD)';
+                } else {
+                    document.getElementById('globalUpdateTime').innerText = 'No runs yet';
+                }
+
+                // ---------- Run log footer ----------
+                if (runLogRes.ok) {
+                    const runLog = await runLogRes.json();
+                    const runTime = runLog.timestamp ? formatTime12(runLog.timestamp) : 'Unknown';
+                    const metersStatus = runLog.meters || {};
+
+                    let footerHtml = `<div class="run-log-time">🕒 রান সময়: ${runTime}</div><div class="run-log-grid">`;
+                    const customOrder = ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"];
+                    const meterKeys = Object.keys(metersStatus).sort((a,b) => customOrder.indexOf(a) - customOrder.indexOf(b));
+
+                    if (meterKeys.length === 0) {
+                        footerHtml += '<span style="color:#888;">কোনো রানের তথ্য নেই</span>';
+                    } else {
+                        for (const meter of meterKeys) {
+                            const status = metersStatus[meter];
+                            const name = meterNames[meter] || meter;
+                            const success = status.success;
+                            const errorMsg = status.error || '';
+                            const icon = success ? '✅' : '❌';
+                            const balance = status.balance_fetched !== null ? ` (৳${status.balance_fetched})` : '';
+                            footerHtml += `
+                                <div class="run-log-item">
+                                    <span class="status-icon">${icon}</span>
+                                    <span class="meter-name">${name}</span>
+                                    <span style="color:#aaa;font-size:12px;">${balance}</span>
+                                    ${errorMsg ? `<span class="error-msg">${errorMsg}</span>` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                    footerHtml += '</div>';
+                    document.getElementById('runLogContent').innerHTML = footerHtml;
+                } else {
+                    document.getElementById('runLogContent').innerHTML = '<span style="color:#888;">Run log not available yet.</span>';
+                }
+
+                // ---------- Render cards ----------
+                const container = document.getElementById('cardContainer');
+                container.innerHTML = '';
+
+                const meterNumbers = Object.keys(meterData);
+                if (meterNumbers.length === 0) {
+                    container.innerHTML = '<div class="card" style="grid-column:1/-1; text-align:center; padding:40px;">⚠️ কোনো মিটার ডেটা পাওয়া যায়নি।</div>';
+                    return;
+                }
+
+                const customOrder = ["37005309", "37006814", "37001280", "37009693", "37005104", "37002391"];
+                meterNumbers.sort((a, b) => customOrder.indexOf(a) - customOrder.indexOf(b));
+
+                meterNumbers.forEach((meter) => {
+                    const entry = meterData[meter];
+                    const history = entry.history || [];
+                    const monthlyTotal = entry.monthly_total || 0.0;
+                    const displayName = meterNames[meter] || meter;
+
+                    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                    const latestBalance = lastEntry ? lastEntry.balance : 0;
+                    const latestDate = lastEntry ? formatDateLabel(lastEntry.balance_date) : '--';
+
+                    // Compute average usage from last 7 (already only 7)
+                    let avgUsage = 0;
+                    if (history.length > 0) {
+                        const total = history.reduce((s, e) => s + (e.usage || 0), 0);
+                        avgUsage = total / history.length;
+                    }
+
+                    const balanceClass = latestBalance < 0 ? 'balance-negative' : 'balance-positive';
+
+                    // Chart data (last 7 entries)
+                    const labels = history.map(d => formatDateLabel(d.balance_date || ''));
+                    const usages = history.map(d => d.usage || 0);
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.id = `card-${meter}`;
+
+                    card.innerHTML = `
+                        <div class="meter-header">
+                            <span class="meter-title">${displayName}</span>
+                            <span class="meter-number">
+                                ${meter}
+                                <button class="copy-btn" id="copy-btn-${meter}" onclick="copyMeterNumber('${meter}')" title="Copy meter number">📋</button>
+                            </span>
+                        </div>
+                        <div class="balance-amount ${balanceClass}">৳ ${latestBalance.toFixed(2)}</div>
+                        <div class="meta-row">
+                            <span>📅 তারিখ: ${latestDate}</span>
+                            <span class="usage-badge">গড় খরচ: ৳ ${avgUsage.toFixed(2)}</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-${meter}"></canvas>
+                        </div>
+                        <div class="forecast-row">
+                            <div class="forecast-left">
+                                <span class="forecast-label">📈 মোট খরচ (মাস)</span>
+                                <span class="total-usage-value">৳ ${monthlyTotal.toFixed(2)}</span>
+                            </div>
+                            <div class="forecast-right">
+                                <span class="forecast-label">🔮 পূর্বাভাস</span>
+                                <span class="forecast-value">${avgUsage > 0 ? Math.ceil(latestBalance / avgUsage) + ' দিন' : 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+
+                    // Draw chart
+                    const ctx = document.getElementById(`chart-${meter}`).getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: usages,
+                                backgroundColor: '#4db8ff',
+                                borderRadius: 4,
+                                barPercentage: 0.6
+                            }]
+                        },
+                        options: {
+                            legend: { display: false },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: { padding: { top: 20 } },
+                            tooltips: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return '৳ ' + tooltipItem.yLabel.toFixed(2);
+                                    }
+                                }
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: { beginAtZero: true, maxTicksLimit: 4, fontColor: '#ccc', fontSize: 9 },
+                                    gridLines: { color: '#444', display: true }
+                                }],
+                                xAxes: [{
+                                    ticks: { fontColor: '#eee', fontSize: 10, maxRotation: 30, minRotation: 0 },
+                                    gridLines: { display: false }
+                                }]
+                            },
+                            plugins: {
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'end',
+                                    color: '#eee',
+                                    font: { size: 10, weight: 'bold' },
+                                    formatter: (value) => '৳' + value.toFixed(1),
+                                    offset: 2
+                                }
+                            }
+                        }
+                    });
+                    allCharts.push(chart);
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('cardContainer').innerHTML = `
+                    <div class="card" style="grid-column:1/-1; text-align:center; padding:40px; color:#e74c3c;">
+                        ❌ ডেটা লোড করা যায়নি। <br><small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
