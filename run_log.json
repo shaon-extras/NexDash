@@ -1,40 +1,40 @@
 {
-    "timestamp": "2026-08-06 05:30:06",
+    "timestamp": "2026-08-07 10:33:55",
     "meters": {
         "37005309": {
             "success": true,
             "error": null,
-            "balance_fetched": 1711.71,
+            "balance_fetched": 1684.04,
             "balance_changed": true
         },
         "37006814": {
             "success": true,
             "error": null,
-            "balance_fetched": 2434.89,
+            "balance_fetched": 2333.99,
             "balance_changed": true
         },
         "37001280": {
             "success": true,
             "error": null,
-            "balance_fetched": 2185.34,
+            "balance_fetched": 2110.77,
             "balance_changed": true
         },
         "37009693": {
             "success": true,
             "error": null,
-            "balance_fetched": 1198.52,
+            "balance_fetched": 1156.17,
             "balance_changed": true
         },
         "37005104": {
             "success": true,
             "error": null,
-            "balance_fetched": 672.33,
+            "balance_fetched": 654.45,
             "balance_changed": true
         },
         "37002391": {
             "success": true,
             "error": null,
-            "balance_fetched": 612.02,
+            "balance_fetched": 596.57,
             "balance_changed": true
         }
     }
