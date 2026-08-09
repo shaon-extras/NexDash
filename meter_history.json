@@ -3,12 +3,6 @@
         "37005309": {
             "history": [
                 {
-                    "balance_date": "2026-08-03",
-                    "balance": 949.6,
-                    "usage": 41.86,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
-                {
                     "balance_date": "2026-08-04",
                     "balance": 1793.21,
                     "usage": 0.0,
@@ -43,10 +37,16 @@
                     "balance": 1558.31,
                     "usage": 49.0,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 1514.68,
+                    "usage": 43.63,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 313.45000000000005,
-            "last_balance": 1558.31,
+            "monthly_total": 357.08000000000004,
+            "last_balance": 1514.68,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -56,12 +56,6 @@
         },
         "37006814": {
             "history": [
-                {
-                    "balance_date": "2026-08-03",
-                    "balance": -17.66,
-                    "usage": 93.4,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
                 {
                     "balance_date": "2026-08-04",
                     "balance": 2635.44,
@@ -97,10 +91,16 @@
                     "balance": 2084.4,
                     "usage": 138.24,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 2007.7,
+                    "usage": 76.7,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 695.94,
-            "last_balance": 2084.4,
+            "monthly_total": 772.6400000000001,
+            "last_balance": 2007.7,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -110,12 +110,6 @@
         },
         "37001280": {
             "history": [
-                {
-                    "balance_date": "2026-08-03",
-                    "balance": 2393.94,
-                    "usage": 0.0,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
                 {
                     "balance_date": "2026-08-04",
                     "balance": 2332.7,
@@ -151,10 +145,16 @@
                     "balance": 1963.58,
                     "usage": 64.54,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 1918.73,
+                    "usage": 44.85,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 492.44,
-            "last_balance": 1963.58,
+            "monthly_total": 537.29,
+            "last_balance": 1918.73,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -164,12 +164,6 @@
         },
         "37009693": {
             "history": [
-                {
-                    "balance_date": "2026-08-03",
-                    "balance": 105.43,
-                    "usage": 39.48,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
                 {
                     "balance_date": "2026-08-04",
                     "balance": 1282.38,
@@ -205,10 +199,16 @@
                     "balance": 1071.77,
                     "usage": 36.77,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 1047.98,
+                    "usage": 23.79,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 289.18,
-            "last_balance": 1071.77,
+            "monthly_total": 312.97,
+            "last_balance": 1047.98,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -218,12 +218,6 @@
         },
         "37005104": {
             "history": [
-                {
-                    "balance_date": "2026-08-03",
-                    "balance": -88.33,
-                    "usage": 11.7,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
                 {
                     "balance_date": "2026-08-04",
                     "balance": 725.97,
@@ -259,10 +253,16 @@
                     "balance": 583.26,
                     "usage": 30.56,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 569.36,
+                    "usage": 13.9,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 201.14,
-            "last_balance": 583.26,
+            "monthly_total": 215.04,
+            "last_balance": 569.36,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -272,12 +272,6 @@
         },
         "37002391": {
             "history": [
-                {
-                    "balance_date": "2026-08-03",
-                    "balance": 654.14,
-                    "usage": 0.0,
-                    "recorded_at": "2026-08-03 05:16:05"
-                },
                 {
                     "balance_date": "2026-08-04",
                     "balance": 641.41,
@@ -313,10 +307,16 @@
                     "balance": 570.21,
                     "usage": 12.84,
                     "recorded_at": "2026-08-09 03:04:18"
+                },
+                {
+                    "balance_date": "2026-08-10",
+                    "balance": 556.51,
+                    "usage": 13.7,
+                    "recorded_at": "2026-08-10 03:17:15"
                 }
             ],
-            "monthly_total": 100.77,
-            "last_balance": 570.21,
+            "monthly_total": 114.47,
+            "last_balance": 556.51,
             "monthly_totals": [
                 {
                     "month": "2026-07",
@@ -326,11 +326,11 @@
         }
     },
     "last_run": {
-        "37005309": "2026-08-09 03:04:18",
-        "37006814": "2026-08-09 03:04:18",
-        "37001280": "2026-08-09 03:04:18",
-        "37009693": "2026-08-09 03:04:18",
-        "37005104": "2026-08-09 03:04:18",
-        "37002391": "2026-08-09 03:04:18"
+        "37005309": "2026-08-10 03:17:15",
+        "37006814": "2026-08-10 03:17:15",
+        "37001280": "2026-08-10 03:17:15",
+        "37009693": "2026-08-10 03:17:15",
+        "37005104": "2026-08-10 03:17:15",
+        "37002391": "2026-08-10 03:17:15"
     }
 }
