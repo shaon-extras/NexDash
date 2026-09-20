@@ -1,5 +1,5 @@
 {
-    "timestamp": "2026-09-20 03:50:20",
+    "timestamp": "2026-09-20 11:34:53",
     "meters": {
         "37005309": {
             "success": false,
@@ -7,34 +7,29 @@
             "balance_fetched": null
         },
         "37006814": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 2412.09,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         },
         "37001280": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 1445.25,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         },
         "37009693": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 588.86,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         },
         "37005104": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 192.02,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         },
         "37002391": {
-            "success": true,
-            "error": null,
-            "balance_fetched": 415.01,
-            "balance_changed": true
+            "success": false,
+            "error": "Scraping failed (timeout or no data)",
+            "balance_fetched": null
         }
     }
 }
